@@ -1,0 +1,43 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Components.Web
+@namespace ServerUi.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <base href="~/" />
+        <link rel="icon"        href="_content/SharedLibrary/favicon.png" type="image/png" />
+
+        <!-- Frameworks and Libraries -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
+        <link rel="stylesheet" href="https://blazor.cdn.telerik.com/blazor/4.5.0/kendo-theme-bootstrap/swatches/bootstrap-main.css" type="text/css" />
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+        <script src="https://blazor.cdn.telerik.com/blazor/4.5.0/telerik-blazor.min.js" defer></script>
+
+        <!-- App CSS -->
+        <link rel="stylesheet" href="_content/SharedLibrary/css/site.css" />
+        <link rel="stylesheet" href="ServerUi.styles.css" />
+
+        <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+    </head>
+    <body>
+        <component type="typeof(App)" render-mode="ServerPrerendered" />
+
+        <div id="blazor-error-ui">
+            <environment include="Staging,Production">
+                An error has occurred. This application may no longer respond until reloaded.
+            </environment>
+            <environment include="Development">
+                An unhandled exception has occurred. See browser dev tools for details.
+            </environment>
+            <a href="" class="reload">Reload</a>
+            <a class="dismiss">🗙</a>
+        </div>
+
+        <script src="_framework/blazor.server.js"></script>
+    </body>
+</html>

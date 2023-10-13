@@ -1,0 +1,152 @@
+﻿@page "/filebrowser"
+@using Microsoft.Extensions.Configuration
+@using Telerik.Blazor.Components.Upload
+@using System.Text.Json;
+@inject IConfiguration Configuration
+@inject FileBrowserManager FileBrowserManager
+@inject HttpClient http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Telerik File Manager</PageTitle>
+
+<h2 class="text-sm-center fw-bold">Telerik File Manager Example</h2>
+
+<TelerikFileManager Height="400px"
+                    Data="@Data"
+                    @bind-SelectedItems="@SelectedItems" 
+                    @bind-Path="@DirectoryPath"
+                    NameField="@(nameof(FlatFileEntry.Name))"
+                    SizeField="@(nameof(FlatFileEntry.Size))"
+                    PathField="@(nameof(FlatFileEntry.Path))"
+                    ExtensionField="@(nameof(FlatFileEntry.Extension))"
+                    IsDirectoryField="@(nameof(FlatFileEntry.IsDirectory))"
+                    HasDirectoriesField="@(nameof(FlatFileEntry.HasDirectories))"
+                    IdField="@(nameof(FlatFileEntry.Id))"
+                    ParentIdField="@(nameof(FlatFileEntry.ParentId))"
+                    DateCreatedField="@(nameof(FlatFileEntry.DateCreated))"
+                    DateCreatedUtcField="@(nameof(FlatFileEntry.DateCreatedUtc))"
+                    DateModifiedField="@(nameof(FlatFileEntry.DateModified))"
+                    DateModifiedUtcField="@(nameof(FlatFileEntry.DateModifiedUtc))">
+</TelerikFileManager>
+<br />
+<br/>
+
+
+<h4>Folder and File List</h4>
+
+@if (Data == null && Data.GetEnumerator().MoveNext())
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <TelerikGrid @ref="@GridRef"
+        AutoGenerateColumns=true
+        Data="Data" 
+        FilterMode="GridFilterMode.FilterMenu"
+        Groupable="true"
+        Height="600px"
+        Navigable="true"
+        Pageable="true"
+        PageSize="20"
+        Reorderable="true"
+        Resizable="true"
+        Sortable="true"
+        Width="1200px">
+        <GridToolBarTemplate>
+            <TelerikButton OnClick="@AutoFitAllColumns">AutoFit All Columns</TelerikButton>
+            <span class="k-toolbar-spacer"></span>
+            <GridSearchBox DebounceDelay="200"></GridSearchBox>
+            <GridCommandButton Command="ExcelExport" Icon="@SvgIcon.FileExcel">XLS Export</GridCommandButton>
+            <GridCommandButton Command="CsvExport" Icon="@SvgIcon.FileCsv">CSV Export</GridCommandButton>
+        </GridToolBarTemplate>
+        <GridColumns>
+            <GridColumn Field=@nameof(FlatFileEntry.DateCreated) Visible="false" />
+            <GridColumn Field=@nameof(FlatFileEntry.DateModified) Visible="false" />
+        </GridColumns>
+        <GridExport>
+            <GridExcelExport FileName="@_exportFilename" AllPages="true" />
+            <GridCsvExport FileName="@_exportFilename" AllPages="true" />
+        </GridExport>
+    </TelerikGrid>
+}
+
+
+@code {
+    private bool _showLoader = false;
+    private bool _dialogVisible = false;
+    private string _dialogTitle = "Docs File Browser";
+    private string _dialogContent = string.Empty;
+    private string _errorMessage = string.Empty;
+    private string _docsRootPath = string.Empty;
+    private string _exportFilename = "Docs_Directories_" + DateTime.Now.ToString("ddMMMyyyy");
+    public string SaveUrl => $"{http.BaseAddress}api/filebrowser/savefiles";
+    [CascadingParameter]
+    public string DirectoryPath { get; set; } = string.Empty;
+    public DialogFactory Dialogs { get; set; }
+    public IEnumerable<FlatFileEntry> SelectedItems { get; set; } = new List<FlatFileEntry>();
+    public List<FlatFileEntry> Data { get; set; } = new List<FlatFileEntry>();
+    public List<string> AllowedExtensions => new List<string> { ".docx", ".pdf", ".xls", ".xlsx" };
+    private TelerikGrid<FlatFileEntry> GridRef { get; set; } = new();
+
+
+    private async Task AutoFitAllColumns()
+    {
+        await GridRef.AutoFitAllColumnsAsync();
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        //_docsRootPath = "wwwroot\\file-manager-files";
+        _docsRootPath = Configuration.GetValue<string>("Docs:RootPath") ?? string.Empty;
+
+        DirectoryPath = "file-manager-files";
+
+        await ReadDirectoryAsync();
+
+        await base.OnInitializedAsync();
+    }
+
+
+    public async Task ReadDirectoryAsync()
+    {
+        _errorMessage = string.Empty;
+        //_showLoader = true;
+        try
+        {
+            var result = await FileBrowserManager.ReadDirectoryAsync(_docsRootPath);
+            if (result != null)
+            {
+                Data = result;
+            }
+            else
+            {
+                Data = new();
+                _errorMessage = "Could not load engine models.";
+                _dialogContent = _errorMessage;
+                _dialogVisible = true;
+            }
+        }
+        /*catch (AccessTokenNotAvailableException ex)
+            {
+            var msg = ex.Message;
+            users = new();
+            ex.Redirect();
+        }*/
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+            _dialogContent = _errorMessage;
+            _dialogVisible = true;
+            Data = new();
+        }
+        //_showLoader = false;
+    }
+
+
+    private void RefreshData()
+    {
+        Data = new List<FlatFileEntry>(Data);
+    }
+}
